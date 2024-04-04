@@ -1,0 +1,18 @@
+{
+  "name": "mongo-source-connector",
+  "config": {
+    "connector.class": "com.mongodb.kafka.connect.MongoSourceConnector",
+    "tasks.max": "1",
+    "connection.uri": "mongodb://mongo:27017",
+    "topic.prefix": "mongo-",
+    "database": "rocketchat",
+    "collection": "rocketchat_message",
+    "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "key.converter.schemas.enable": "false",
+    "value.converter.schemas.enable": "false",
+    "offset.partition.name": "maya_partition", 
+    "startup.mode": "copy_existing", 
+    "read.concern.level": "local"
+  }
+}
