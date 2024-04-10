@@ -17,6 +17,7 @@ const run = async () => {
     topics: [
       "mongo.rocketchat.rocketchat_message",
       "mongo.rocketchat.rocketchat_room",
+      "mongo.rocketchat.users",
     ],
     fromBeginning: false,
   });
@@ -25,22 +26,28 @@ const run = async () => {
     eachMessage: async ({ topic, partition, message }) => {
       let doc = undefined;
       const msg = JSON.parse(JSON.parse(message.value));
+
       switch (topic) {
         case "mongo.rocketchat.rocketchat_message":
-          doc = msg.fullDocument;
+          if (msg.operationType === "insert") {
+            doc = msg.fullDocument;
 
-          if (
-            doc?.u._id &&
-            (await handler.isAdmin(doc.u._id)) &&
-            doc.msg === "log popular word"
-          ) {
-            console.log(handler.getPopularWord(wordsMap));
-          } else {
-            doc?.msg.split(" ").forEach((word) => {
-              wordsMap.get(word)
-                ? wordsMap.set(word, wordsMap.get(word) + 1)
-                : wordsMap.set(word, 1);
-            });
+            if (
+              doc?.u._id &&
+              (await handler.isAdmin(doc.u._id)) &&
+              doc.msg === "log popular word"
+            ) {
+              console.log(handler.getPopularWord(wordsMap));
+            } else {
+              doc?.msg.split(" ").forEach((word) => {
+                wordsMap.get(word)
+                  ? wordsMap.set(word, wordsMap.get(word) + 1)
+                  : wordsMap.set(word, 1);
+              });
+            }
+          } else if (msg.operationType === "update") {
+            const id = msg.documentKey._id;
+            handler.notify(id);
           }
           break;
 
@@ -58,7 +65,10 @@ const run = async () => {
             doc && msg.operationType === "update"
               ? { ...doc, _id: msg.documentKey._id }
               : doc;
-          if (doc?.fname.includes("cat") || doc?.fname.includes("black")) {
+          if (
+            doc?.fname &&
+            (doc?.fname.includes("cat") || doc?.fname.includes("black"))
+          ) {
             if (
               !prevTimeStamp ||
               Math.abs(msg.clusterTime.$timestamp.t - prevTimeStamp) > 20
@@ -66,6 +76,13 @@ const run = async () => {
               prevTimeStamp = msg.clusterTime.$timestamp.t;
               handler.reverseWords(doc._id, doc.fname);
             }
+          }
+          break;
+
+        case "mongo.rocketchat.users":
+          if (msg.operationType === "insert") {
+            doc = msg.fullDocument;
+            handler.sendWelcome(doc.username);
           }
           break;
         default:

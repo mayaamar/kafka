@@ -1,5 +1,6 @@
 import fs from "fs";
-import { room, user } from "./repository.js";
+import { room, user, message } from "./repository.js";
+import { messageApi } from "./api.js";
 
 export const handler = {
   isAdmin: async (id) => {
@@ -39,4 +40,21 @@ export const handler = {
     await room.changeName(id, newName);
   },
   reverseString: (str) => str.split("").reverse().join(""),
+  sendWelcome: (username) =>
+    messageApi.send({
+      channel: `@${username}`,
+      text: "Welcome to rocketchat " + username + " !",
+      emoji: ":grinning:",
+    }),
+  notify: async (id) => {
+    const msg = await message.getById(id);
+    const result = (await room.getRoomWithUsers(msg.rid))[0];
+    result.users.forEach((user) =>
+      messageApi.send({
+        channel: `@${user.username}`,
+        text: `Notification! ${msg.u.username} edited a message in ${result.fname || result.name || "This chat"} !`,
+        emoji: ":open_mouth: ",
+      })
+    );
+  },
 };
