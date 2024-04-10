@@ -1,13 +1,11 @@
-import { client } from "./service.js";
 import fs from "fs";
+import { room, user } from "./repository.js";
 
 export const handler = {
   isAdmin: async (id) => {
-    const user = await client
-      .db("rocketchat")
-      .collection("users")
-      .findOne({ _id: id });
-    return user.roles.some((role) => role === "admin");
+    const fullUser = await user.getById(id);
+
+    return fullUser.roles?.some((role) => role === "admin");
   },
   mapWords: (message) => {
     const wordMap = getWordMap();
@@ -33,4 +31,12 @@ export const handler = {
 
     return maxWord;
   },
+  reverseWords: async (id, name) => {
+    const nameWords = name.split(/ |-/gm);
+    let newName = "";
+    nameWords.forEach((word) => (newName += "-" + handler.reverseString(word)));
+    newName = newName.substring(1);
+    await room.changeName(id, newName);
+  },
+  reverseString: (str) => str.split("").reverse().join(""),
 };
