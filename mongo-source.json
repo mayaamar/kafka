@@ -4,15 +4,14 @@
     "connector.class": "com.mongodb.kafka.connect.MongoSourceConnector",
     "tasks.max": "1",
     "connection.uri": "mongodb://mongo:27017",
-    "topic.prefix": "mongo",
     "database": "rocketchat",
     "collection": "",
     "key.converter": "org.apache.kafka.connect.json.JsonConverter",
     "value.converter": "org.apache.kafka.connect.json.JsonConverter",
     "key.converter.schemas.enable": "false",
     "value.converter.schemas.enable": "false",
-    "offset.partition.name": "my_partition", 
-    "startup.mode": "copy_existing", 
-    "read.concern.level": "local"
+    "startup.mode": "copy_existing",
+    "change.stream.full.document": "updateLookup",
+    "pipeline": "[{\"$match\": {\"ns.coll\": {\"$regex\": /^rocketchat_message|rocketchat_room|users$/}}}, {\"$match\": {\"operationType\": {\"$regex\": /^insert|update$/}}}]"
   }
 }

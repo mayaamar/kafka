@@ -1,10 +1,9 @@
-import { kafka } from "./client.js";
+import { kafka } from "./kafka.js";
 import { handler } from "./handler.js";
 import connectToDB from "./service.js";
 
 await connectToDB();
 
-const wordsMap = new Map();
 const consumer = kafka.consumer({ groupId: "my-group" });
 
 console.log("subscribed");
@@ -22,6 +21,8 @@ const run = async () => {
     fromBeginning: false,
   });
   let prevTimeStamp = null;
+  const wordsMap = new Map();
+
   await consumer.run({
     eachMessage: async ({ topic, partition, message }) => {
       let doc = undefined;

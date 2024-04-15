@@ -8,17 +8,6 @@ export const handler = {
 
     return fullUser.roles?.some((role) => role === "admin");
   },
-  mapWords: (message) => {
-    const wordMap = getWordMap();
-
-    const words = message.split(" ");
-    words.forEach((word) => {
-      wordMap[word] = wordMap[word] ? wordMap[word] + 1 : 1;
-    });
-    fs.writeFileSync("wordMap.txt", JSON.stringify(wordMap), {
-      flag: "w",
-    });
-  },
   getPopularWord: (wordsMap) => {
     if (wordsMap.size === 0) return "No words were logged";
 
@@ -33,7 +22,7 @@ export const handler = {
     return maxWord;
   },
   reverseWords: async (id, name) => {
-    const nameWords = name.split(/ |-/gm);
+    const nameWords = name.split(/ -/gm);
     let newName = "";
     nameWords.forEach((word) => (newName += "-" + handler.reverseString(word)));
     newName = newName.substring(1);
@@ -52,7 +41,9 @@ export const handler = {
     result.users.forEach((user) =>
       messageApi.send({
         channel: `@${user.username}`,
-        text: `Notification! ${msg.u.username} edited a message in ${result.fname || result.name || "This chat"} !`,
+        text: `Notification! ${msg.u.username} edited a message in ${
+          result.fname || result.name || "This chat"
+        } !`,
         emoji: ":open_mouth: ",
       })
     );
