@@ -1,14 +1,12 @@
-import fs from "fs";
-import { room, user, message } from "./repository.js";
-import { messageApi } from "./api.js";
-
+import {
+  getUsersInRoom,
+  getRoomId,
+  renameRoom,
+  sendMessage,
+} from "./rocketchat.js";
+const wordsMap = new Map();
 export const handler = {
-  isAdmin: async (id) => {
-    const fullUser = await user.getById(id);
-
-    return fullUser.roles?.some((role) => role === "admin");
-  },
-  getPopularWord: (wordsMap) => {
+  getPopularWord: () => {
     if (wordsMap.size === 0) return "No words were logged";
 
     let maxWord = "No max was found";
@@ -21,31 +19,47 @@ export const handler = {
 
     return maxWord;
   },
-  reverseWords: async (id, name) => {
-    const nameWords = name.split(/ -/gm);
-    let newName = "";
-    nameWords.forEach((word) => (newName += "-" + handler.reverseString(word)));
-    newName = newName.substring(1);
-    await room.changeName(id, newName);
+  mapWords: (words) => {
+    words.forEach((word) => {
+      wordsMap.get(word)
+        ? wordsMap.set(word, wordsMap.get(word) + 1)
+        : wordsMap.set(word, 1);
+    });
   },
-  reverseString: (str) => str.split("").reverse().join(""),
+  reverseWords: async (id, name) => {
+    const nameWords = name.split(/ |-/gm);
+    let newName = "";
+    nameWords.forEach((word) => (newName += "-" + reverseString(word)));
+    newName = newName.substring(1);
+    await renameRoom(id, newName);
+  },
+
   sendWelcome: (username) =>
-    messageApi.send({
+    sendMessage({
       channel: `@${username}`,
       text: "Welcome to rocketchat " + username + " !",
       emoji: ":grinning:",
     }),
-  notify: async (id) => {
-    const msg = await message.getById(id);
-    const result = (await room.getRoomWithUsers(msg.rid))[0];
-    result.users.forEach((user) =>
-      messageApi.send({
-        channel: `@${user.username}`,
-        text: `Notification! ${msg.u.username} edited a message in ${
-          result.fname || result.name || "This chat"
-        } !`,
-        emoji: ":open_mouth: ",
+  notify: async (msg) => {
+    const result = await getUsersInRoom(msg.rid);
+    const room = await getRoomId(msg.rid);
+    console.log(room);
+
+    await Promise.all(
+      result.forEach(async (user) => {
+        console.log("roommmmm");
+        console.log(room.name);
+        console.log(room.fname);
+
+        await sendMessage({
+          channel: `@${user.username}`,
+          text: `Notification! ${msg.u.username} edited a message in ${
+            room?.fname || room?.name || "This chat"
+          } !`,
+          emoji: ":open_mouth: ",
+        });
       })
     );
   },
 };
+const reverseString = (str) => str.split("").reverse().join("");
