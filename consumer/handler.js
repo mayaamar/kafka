@@ -41,17 +41,11 @@ export const handler = {
       emoji: ":grinning:",
     }),
   notify: async (msg) => {
-    console.log();
     const result = await getUsersInRoom(msg.rid);
-    const room = await getRoomId(msg.rid);
-    console.log(room);
+    const room = (await getRoomId(msg.rid)).room;
 
     await Promise.all(
       result.map(async (user) => {
-        console.log("roommmmm");
-        console.log(room.name);
-        console.log(room.fname);
-
         await sendMessage({
           channel: `@${user.username}`,
           text: `Notification! ${msg.u.username} edited a message in ${

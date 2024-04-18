@@ -20,8 +20,7 @@ export const setConsumerFunc = () => {
         }
         break;
       case "update":
-        const id = msg.documentKey._id;
-        handler.notify(doc);
+        await handler.notify(doc);
         break;
     }
   });
@@ -38,24 +37,17 @@ export const setConsumerFunc = () => {
       (doc?.fname.includes("cat") || doc?.fname.includes("black"))
     ) {
       if (
-        nameChanged &&
-        doc?.fname &&
-        (doc?.fname.includes("cat") || doc?.fname.includes("black"))
+        !prevTimeStamp ||
+        Math.abs(msg.clusterTime.$timestamp.t - prevTimeStamp) > 10
       ) {
-        
-        if (
-          !prevTimeStamp ||
-          Math.abs(msg.clusterTime.$timestamp.t - prevTimeStamp) > 10
-        ) {
-          prevTimeStamp = msg.clusterTime.$timestamp.t;
-          handler.reverseWords(doc._id, doc.fname);
-        }
+        prevTimeStamp = msg.clusterTime.$timestamp.t;
+        await handler.reverseWords(doc._id, doc.fname);
       }
     }
   });
   consumerFunc.set(topics[2], async (msg, doc) => {
     if (msg.operationType === "insert") {
-      handler.sendWelcome(doc.username);
+      await handler.sendWelcome(doc.username);
     }
   });
 };

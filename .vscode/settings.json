@@ -1,9 +1,7 @@
 {
     "launch": {
         "configurations": [
-            {
-                "env": {"TOPICS": ""}
-            }],
+            ],
         "compounds": []
     }
 }

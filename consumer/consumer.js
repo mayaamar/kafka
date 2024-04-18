@@ -1,7 +1,7 @@
 import { kafka } from "./kafka.js";
 import config from "./config.js";
 import "dotenv/config";
-import { renameRoom, isAdmin, startReceiving } from "./rocketchat.js";
+import { startReceiving } from "./rocketchat.js";
 import { consumerFunc, setConsumerFunc } from "./consumerLogic.js";
 
 await startReceiving();
@@ -17,32 +17,13 @@ const run = async () => {
     topics: config.topics,
     fromBeginning: false,
   });
-  let prevTimeStamp = null;
-  const wordsMap = new Map();
 
   await consumer.run({
     eachMessage: async ({ topic, partition, message }) => {
       const msg = JSON.parse(JSON.parse(message.value));
       const doc = msg.fullDocument;
 
-      switch (topic) {
-        case "rocketchat.rocketchat_message":
-          consumerFunc.get(topic)(msg, doc);
-
-          break;
-
-        case "rocketchat.rocketchat_room":
-          consumerFunc.get(topic)(msg, doc);
-
-          break;
-
-        case "rocketchat.users":
-          consumerFunc.get(topic)(msg, doc);
-
-          break;
-        default:
-          break;
-      }
+      consumerFunc.get(topic)(msg, doc);
     },
   });
 };
