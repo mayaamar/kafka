@@ -10,8 +10,8 @@
     "value.converter": "org.apache.kafka.connect.json.JsonConverter",
     "key.converter.schemas.enable": "false",
     "value.converter.schemas.enable": "false",
-    "startup.mode": "copy_existing",
     "change.stream.full.document": "updateLookup",
+    "auto.create.topics.enable" : "true",
     "pipeline": "[{\"$match\": {\"ns.coll\": {\"$regex\": /^rocketchat_message|rocketchat_room|users$/}}}, {\"$match\": {\"operationType\": {\"$regex\": /^insert|update$/}}}]"
   }
 }

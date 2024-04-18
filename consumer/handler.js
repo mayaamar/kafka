@@ -56,5 +56,15 @@ export const handler = {
       })
     );
   },
+  isEdited: (msg) =>
+    Object.keys(msg.updateDescription.updatedFields)?.some(
+      (field) => field === "msg"
+    ),
+  didRoomNameChanged: (msg) =>
+    msg.operationType === "insert" ||
+    (msg.operationType === "update" &&
+      Object.keys(msg.updateDescription.updatedFields)?.some(
+        (field) => field === "fname" || field === "name"
+      )),
 };
 const reverseString = (str) => str.split("").reverse().join("");

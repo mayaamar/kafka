@@ -1,23 +1,22 @@
 import { kafka } from "./kafka.js";
-import config from "./config.js";
+import config from "./utils/config.js";
 import "dotenv/config";
-import { startReceiving } from "./rocketchat.js";
-import { consumerFunc, setConsumerFunc } from "./consumerLogic.js";
+import { connectToApi } from "./rocketchat.js";
+import { consumerFunc, initConsumerFunc } from "./consumerLogic.js";
 
-await startReceiving();
-setConsumerFunc();
 const consumer = kafka.consumer({ groupId: "my-group" });
-
-console.log("subscribed");
-
-const run = async () => {
+const init = async () => {
   await consumer.connect();
+  await connectToApi();
+  initConsumerFunc();
+};
+const run = async () => {
   console.log("connected");
   await consumer.subscribe({
     topics: config.topics,
     fromBeginning: false,
   });
-
+  console.log("subscribed");
   await consumer.run({
     eachMessage: async ({ topic, partition, message }) => {
       const msg = JSON.parse(JSON.parse(message.value));
@@ -28,4 +27,9 @@ const run = async () => {
   });
 };
 
-run().catch(console.error);
+try {
+  await init();
+  await run();
+} catch (error) {
+  console.log(error.message);
+}
