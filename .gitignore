@@ -2,4 +2,4 @@ data
 kafka-connect-data
 node_modules
 .env
-*/.env
+uploads
